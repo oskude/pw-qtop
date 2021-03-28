@@ -1,0 +1,25 @@
+#!/usr/bin/python3
+
+# die on ctrl+c in terminal
+import signal
+signal.signal(signal.SIGINT, signal.SIG_DFL)
+
+# data for qml
+from PySide6.QtCore import QObject, Slot
+import subprocess
+class Pw(QObject):
+	def __init__(self):
+		QObject.__init__(self)
+	@Slot(result=str)
+	def getData(self):
+		return subprocess.run(["pw-dump", "-N"], capture_output=True, text=True).stdout
+
+# render qml
+from PySide6.QtWidgets import QApplication
+from PySide6.QtQml import QQmlApplicationEngine
+app = QApplication([])
+eng = QQmlApplicationEngine(parent=app)
+pw = Pw()
+eng.rootContext().setContextProperty("pw", pw)
+eng.load("main.qml")
+app.exec_()
